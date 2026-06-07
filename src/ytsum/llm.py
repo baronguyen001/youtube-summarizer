@@ -211,7 +211,7 @@ def _summarize_openai(
     output = response.choices[0].message.content
     if not output:
         raise RuntimeError("OpenAI returned an empty response.")
-    return output
+    return str(output)
 
 
 def _post_with_retries(
