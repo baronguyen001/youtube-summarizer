@@ -118,6 +118,10 @@ Part of a small portfolio of scriptable dev/AI tools — each links up to the **
 
 Issues and PRs welcome — look for [`good first issue`](https://github.com/baronguyen001/youtube-summarizer/issues). Made a video or wrote a post about `ytsum`? Open a PR and I'll link it here.
 
+## Contact
+
+Questions, ideas, or want to work together? Reach me on X [@baronguyen001](https://x.com/baronguyen001) or email [baronguyen001@gmail.com](mailto:baronguyen001@gmail.com).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
