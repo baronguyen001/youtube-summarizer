@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="260" viewBox="0 0 960 260" role="img" aria-label="ytsum pipeline">
+  <rect width="960" height="260" fill="#101114"/>
+  <style>
+    text { font-family: Segoe UI, Arial, sans-serif; fill: #e9eef4; font-size: 18px; }
+    .small { font-size: 13px; fill: #a8b3c2; }
+    .box { fill: #181b21; stroke: #2b3038; stroke-width: 2; rx: 8; }
+    .arrow { stroke: #78c7ff; stroke-width: 3; marker-end: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#78c7ff"/>
+    </marker>
+  </defs>
+  <rect class="box" x="30" y="70" width="130" height="90"/>
+  <text x="65" y="110">Input</text>
+  <text class="small" x="48" y="134">url file playlist</text>
+  <line class="arrow" x1="170" y1="115" x2="230" y2="115"/>
+  <rect class="box" x="240" y="70" width="130" height="90"/>
+  <text x="280" y="110">yt-dlp</text>
+  <text class="small" x="260" y="134">metadata captions</text>
+  <line class="arrow" x1="380" y1="115" x2="440" y2="115"/>
+  <rect class="box" x="450" y="70" width="130" height="90"/>
+  <text x="482" y="110">json3</text>
+  <text class="small" x="468" y="134">parse dedup</text>
+  <line class="arrow" x1="590" y1="115" x2="650" y2="115"/>
+  <rect class="box" x="660" y="70" width="130" height="90"/>
+  <text x="700" y="110">LLM</text>
+  <text class="small" x="680" y="134">format prompt</text>
+  <line class="arrow" x1="800" y1="115" x2="860" y2="115"/>
+  <rect class="box" x="870" y="70" width="90" height="90"/>
+  <text x="887" y="110">Deliver</text>
+  <text class="small" x="883" y="134">md html tg</text>
+</svg>

@@ -1,0 +1,29 @@
+provider: gemini
+model: null
+output_language: en
+caption_langs: [en]
+transcript_char_cap: 60000
+db_path: ytsum.db
+openai_base_url: null
+
+summarize:
+  temperature: 0.3
+  max_output_tokens: 1536
+  gemini_thinking_budget: 0
+  delay_between_videos_s: 0
+  max_retries: 5
+
+retry:
+  max_attempts: 4
+
+prompt:
+  preset: auto
+  custom_template: null
+
+delivery:
+  targets: [stdout]
+  markdown_dir: out
+  html_dir: out
+
+yt_dlp:
+  cookiefile: null

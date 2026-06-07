@@ -1,0 +1,10 @@
+{
+  "id": "sample001",
+  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "title": "Building a small transcript summarizer",
+  "channel": "Example Dev Channel",
+  "duration": 420,
+  "language": "en",
+  "is_short": false,
+  "transcript": "Today we will build a small command line tool that reads YouTube captions, removes duplicate caption fragments, sends the clean transcript to a language model, and writes the result to stdout or a file. The first step is to fetch metadata with yt-dlp. The second step is to choose manual captions before automatic captions. The third step is to keep provider keys in environment variables only. Finally, we save successful summaries in SQLite so repeated runs do not spend money again."
+}
