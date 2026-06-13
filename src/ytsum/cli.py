@@ -3,13 +3,16 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import yt_dlp
 
 from ytsum import __version__, sources, store
+from ytsum import export as export_lib
 from ytsum.config import Config, load_config
+from ytsum.deliver import digest as digest_render
 from ytsum.deliver.stdout import render
 from ytsum.models import SummaryResult, TranscriptResult, Video
 from ytsum.pipeline import run as run_pipeline
@@ -30,6 +33,12 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_retry(args, cfg)
     if args.command == "stats":
         return _cmd_stats(cfg)
+    if args.command == "digest":
+        return _cmd_digest(args, cfg)
+    if args.command == "search":
+        return _cmd_search(args, cfg)
+    if args.command == "export":
+        return _cmd_export(args, cfg)
     if args.command == "doctor":
         return _cmd_doctor(cfg)
     parser.print_help()
@@ -59,6 +68,18 @@ def _build_parser() -> argparse.ArgumentParser:
     retry = sub.add_parser("retry", help="Retry transient failures")
     retry.add_argument("--limit", type=int, default=20)
     sub.add_parser("stats", help="Show summary stats")
+    digest = sub.add_parser("digest", help="Aggregate stored summaries into one report")
+    digest.add_argument("--days", type=int, default=7, help="Look-back window (0 = whole library)")
+    digest.add_argument("--format", choices=["html", "markdown"], default="html")
+    digest.add_argument("--out", help="Output file (default digest_<date>.<ext>)")
+    search = sub.add_parser("search", help="Search the stored summary library")
+    search.add_argument("query", help="One or more keywords")
+    search.add_argument("--limit", type=int, default=20)
+    search.add_argument("--json", action="store_true", help="Emit JSON instead of a table")
+    export = sub.add_parser("export", help="Export stored summaries to JSON or CSV")
+    export.add_argument("--format", choices=["json", "csv"], default="json")
+    export.add_argument("--days", type=int, help="Look-back window (omit = whole library)")
+    export.add_argument("--out", help="Output file (default ytsum_export.<ext>)")
     sub.add_parser("doctor", help="Check local setup")
     return parser
 
@@ -157,6 +178,38 @@ def _cmd_stats(cfg: Config) -> int:
         return 0
     for video_type, values in stats.items():
         print(f"{video_type}: {values['success']}/{values['total']} successful")
+    return 0
+
+
+def _cmd_digest(args: argparse.Namespace, cfg: Config) -> int:
+    days = None if args.days == 0 else args.days
+    summaries = store.get_summaries(cfg.db_path, days=days)
+    ext = "md" if args.format == "markdown" else "html"
+    out = Path(args.out) if args.out else Path(f"digest_{datetime.now():%Y%m%d_%H%M%S}.{ext}")
+    path = digest_render.write(summaries, out, fmt=args.format)
+    print(f"Wrote {len(summaries)} summaries to {path}")
+    return 0
+
+
+def _cmd_search(args: argparse.Namespace, cfg: Config) -> int:
+    matches = store.search_summaries(cfg.db_path, args.query, limit=args.limit)
+    if args.json:
+        print(json.dumps(matches, ensure_ascii=False, indent=2))
+        return 0
+    if not matches:
+        print(f"No summaries match: {args.query}")
+        return 0
+    for row in matches:
+        print(f"[{row['score']:>3}] {row['title']} - {row['channel']}")
+        print(f"      {row['url']}")
+    return 0
+
+
+def _cmd_export(args: argparse.Namespace, cfg: Config) -> int:
+    summaries = store.get_summaries(cfg.db_path, days=args.days)
+    out = Path(args.out) if args.out else Path(f"ytsum_export.{args.format}")
+    path = export_lib.write(summaries, out, fmt=args.format)
+    print(f"Exported {len(summaries)} summaries to {path}")
     return 0
 
 

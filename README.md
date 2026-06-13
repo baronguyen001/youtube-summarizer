@@ -63,6 +63,14 @@ ytsum stats
 ytsum doctor      # checks provider key, yt-dlp, db writability
 ```
 
+Your stored summaries become a searchable library (all offline, no provider key):
+
+```bash
+ytsum digest --days 7 --format html --out digest.html   # one report, grouped by topic
+ytsum search "rate limiting" --limit 10                  # ranked keyword search
+ytsum export --format csv --out library.csv              # portable JSON/CSV dump
+```
+
 ## Features
 
 | Feature | What it does |
@@ -74,6 +82,7 @@ ytsum doctor      # checks provider key, yt-dlp, db writability
 | **Retry intelligence** | SQLite dedup never re-summarizes a done video; transient failures retry, permanent ones (no captions / private / members-only) never do. |
 | **Multiple inputs** | A single URL, a file of URLs, a public playlist, or a public channel — all via `yt-dlp`, no login. |
 | **Multiple outputs** | stdout, a Markdown digest, a styled HTML page, or one Telegram message per video. |
+| **Searchable library** | Everything you summarize is queryable offline: `digest` (one grouped HTML/Markdown report), `search` (ranked keyword search), `export` (JSON/CSV) — no key required. |
 
 ## Why this instead of a browser-extension summarizer?
 
@@ -86,6 +95,7 @@ I had a YouTube "watch later" backlog I would never actually watch, and every su
 - **Clear a talk/tutorial backlog** — point it at a playlist, get one Markdown digest.
 - **Daily channel digest** — `ytsum run --channel <@handle> --limit 5` on a cron → Telegram.
 - **Research a topic fast** — summarize 10 videos to stdout and skim the structured output.
+- **Build a personal knowledge base** — `ytsum search`/`digest`/`export` turn months of runs into a queryable, portable library.
 - **Self-hosted, private** — your key, your machine, no third-party SaaS reading your queue.
 
 ## FAQ

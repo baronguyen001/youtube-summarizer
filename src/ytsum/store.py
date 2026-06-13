@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -182,21 +183,47 @@ def save_run_log(
         conn.commit()
 
 
-def get_recent_summaries(path: str | Path, days: int = 7) -> list[dict[str, Any]]:
+def get_summaries(path: str | Path, *, days: int | None = None) -> list[dict[str, Any]]:
+    """Return successful summaries, newest first. ``days=None`` returns the whole library."""
     init_db(path)
+    where = "WHERE success = 1 AND summary != ''"
+    params: tuple[Any, ...] = ()
+    if days is not None:
+        where += " AND processed_at >= datetime('now', ?)"
+        params = (f"-{int(days)} days",)
     with sqlite3.connect(path) as conn:
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
-            """
-            SELECT id, title, channel, video_type, summary, processed_at
-            FROM videos
-            WHERE success = 1 AND summary != ''
-            AND processed_at >= datetime('now', ?)
+            f"""
+            SELECT id, title, channel, url, video_type, summary, processed_at
+            FROM videos {where}
             ORDER BY processed_at DESC
             """,
-            (f"-{days} days",),
+            params,
         ).fetchall()
     return [dict(row) for row in rows]
+
+
+def get_recent_summaries(path: str | Path, days: int = 7) -> list[dict[str, Any]]:
+    return get_summaries(path, days=days)
+
+
+def search_summaries(path: str | Path, query: str, *, limit: int = 20) -> list[dict[str, Any]]:
+    """Deterministic ranked search over stored summaries (title/channel weighted 3x)."""
+    terms = [term for term in re.split(r"\s+", query.strip().lower()) if term]
+    if not terms:
+        return []
+    scored: list[tuple[int, dict[str, Any]]] = []
+    for row in get_summaries(path):
+        heading = f"{row['title']} {row['channel']}".lower()
+        body = str(row["summary"]).lower()
+        score = sum(3 * heading.count(term) + body.count(term) for term in terms)
+        if score > 0:
+            scored.append((score, row))
+    # Stable sort: recency desc first, then score desc -> ties keep newest first.
+    scored.sort(key=lambda item: str(item[1]["processed_at"]), reverse=True)
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [{**row, "score": score} for score, row in scored[: max(0, limit)]]
 
 
 def get_summary_stats(path: str | Path) -> dict[str, dict[str, int]]:
