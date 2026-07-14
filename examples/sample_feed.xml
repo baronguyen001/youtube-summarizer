@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"
+      xmlns:media="http://search.yahoo.com/mrss/"
+      xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Feed Channel</title>
+  <author>
+    <name>Example Feed Channel</name>
+  </author>
+  <entry>
+    <yt:videoId>feedvideo01</yt:videoId>
+    <title>Build Offline Summaries</title>
+    <published>2026-01-03T10:00:00+00:00</published>
+    <media:group>
+      <media:title>Build Offline Summaries</media:title>
+    </media:group>
+  </entry>
+  <entry>
+    <yt:videoId>feedvideo02</yt:videoId>
+    <title>Test Local Search</title>
+    <published>2026-01-02T10:00:00+00:00</published>
+    <media:group>
+      <media:title>Test Local Search</media:title>
+    </media:group>
+  </entry>
+  <entry>
+    <published>2026-01-01T10:00:00+00:00</published>
+  </entry>
+</feed>

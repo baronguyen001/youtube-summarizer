@@ -9,7 +9,7 @@ pip install -e ".[gemini]"
 Set one provider key:
 
 ```bash
-export GEMINI_API_KEY="AIza_your_key_here"
+export GEMINI_API_KEY="your_gemini_api_key"
 ```
 
 Summarize one video:

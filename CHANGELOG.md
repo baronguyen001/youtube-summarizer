@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.0
+
+- Added `ytsum related` - find similar stored summaries with deterministic TF-IDF cosine ranking, by stored id or free-text query.
+- Added `ytsum feed` - list recent videos from a public YouTube channel RSS feed or local Atom XML file, with `--new` filtering against the local store.
+- Added `ytsum keywords` - surface distinctive library-wide themes or per-summary TF-IDF terms.
+- All three commands are keyless, additive, and covered by deterministic offline tests.
+
 ## v0.2.0
 
 - Added `ytsum digest` — aggregate the stored library into one cross-run HTML or Markdown report, grouped by detected topic.

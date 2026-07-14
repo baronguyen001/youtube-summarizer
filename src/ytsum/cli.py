@@ -9,7 +9,7 @@ from typing import Any
 
 import yt_dlp
 
-from ytsum import __version__, sources, store
+from ytsum import __version__, feeds, sources, store, textsim
 from ytsum import export as export_lib
 from ytsum.config import Config, load_config
 from ytsum.deliver import digest as digest_render
@@ -39,6 +39,12 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_search(args, cfg)
     if args.command == "export":
         return _cmd_export(args, cfg)
+    if args.command == "related":
+        return _cmd_related(args, cfg)
+    if args.command == "feed":
+        return _cmd_feed(args, cfg)
+    if args.command == "keywords":
+        return _cmd_keywords(args, cfg)
     if args.command == "doctor":
         return _cmd_doctor(cfg)
     parser.print_help()
@@ -80,6 +86,22 @@ def _build_parser() -> argparse.ArgumentParser:
     export.add_argument("--format", choices=["json", "csv"], default="json")
     export.add_argument("--days", type=int, help="Look-back window (omit = whole library)")
     export.add_argument("--out", help="Output file (default ytsum_export.<ext>)")
+    related = sub.add_parser("related", help="Find similar stored summaries")
+    related_target = related.add_mutually_exclusive_group(required=True)
+    related_target.add_argument("--id", dest="target_id", help="Stored video id to compare")
+    related_target.add_argument("--query", help="Free-text query to compare")
+    related.add_argument("--top", type=int, default=5)
+    related.add_argument("--json", action="store_true", help="Emit JSON instead of a table")
+    feed = sub.add_parser("feed", help="List recent videos from a YouTube channel RSS feed")
+    feed.add_argument("channel", nargs="?", help="Channel id or public feed URL")
+    feed.add_argument("--file", help="Local Atom feed XML file")
+    feed.add_argument("--limit", type=int)
+    feed.add_argument("--new", action="store_true", help="Only show videos not already summarized")
+    feed.add_argument("--json", action="store_true", help="Emit JSON instead of a table")
+    keywords = sub.add_parser("keywords", help="Show distinctive summary-library terms")
+    keywords.add_argument("--id", dest="target_id", help="Stored video id")
+    keywords.add_argument("--top", type=int)
+    keywords.add_argument("--json", action="store_true", help="Emit JSON instead of a list")
     sub.add_parser("doctor", help="Check local setup")
     return parser
 
@@ -210,6 +232,83 @@ def _cmd_export(args: argparse.Namespace, cfg: Config) -> int:
     out = Path(args.out) if args.out else Path(f"ytsum_export.{args.format}")
     path = export_lib.write(summaries, out, fmt=args.format)
     print(f"Exported {len(summaries)} summaries to {path}")
+    return 0
+
+
+def _cmd_related(args: argparse.Namespace, cfg: Config) -> int:
+    summaries = store.get_summaries(cfg.db_path)
+    if not summaries:
+        print("No summaries stored yet.")
+        return 0
+    try:
+        matches = textsim.related_summaries(
+            summaries,
+            target_id=args.target_id,
+            query=args.query,
+            top=args.top,
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps(matches, ensure_ascii=False, indent=2))
+        return 0
+    if not matches:
+        print("No related summaries found.")
+        return 0
+    for row in matches:
+        print(f"[{row['similarity']:.4f}] {row['title']} - {row['channel']}")
+        print(f"        {row['url']}")
+    return 0
+
+
+def _cmd_feed(args: argparse.Namespace, cfg: Config) -> int:
+    if bool(args.channel) == bool(args.file):
+        print("feed requires exactly one channel argument or --file.", file=sys.stderr)
+        return 1
+    xml_text = (
+        Path(args.file).read_text(encoding="utf-8")
+        if args.file
+        else feeds.fetch_feed(feeds.feed_url_for(str(args.channel)))
+    )
+    entries = feeds.parse_feed(xml_text)
+    if args.new:
+        entries = feeds.unseen(entries, cfg.db_path)
+    if args.limit is not None:
+        entries = entries[: max(0, args.limit)]
+    if args.json:
+        print(json.dumps(entries, ensure_ascii=False, indent=2))
+        return 0
+    if not entries:
+        print("No feed videos found.")
+        return 0
+    for entry in entries:
+        print(f"{entry['published']}  {entry['title']} - {entry['channel']}")
+        print(f"      {entry['url']}")
+    return 0
+
+
+def _cmd_keywords(args: argparse.Namespace, cfg: Config) -> int:
+    summaries = store.get_summaries(cfg.db_path)
+    if not summaries:
+        print("No summaries stored yet.")
+        return 0
+    try:
+        if args.target_id:
+            terms = textsim.summary_keywords(summaries, args.target_id, top=args.top or 10)
+        else:
+            terms = textsim.library_keywords(summaries, top=args.top or 15)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps([{"term": term, "weight": weight} for term, weight in terms], indent=2))
+        return 0
+    if not terms:
+        print("No keywords found.")
+        return 0
+    for term, weight in terms:
+        print(f"{term}: {weight:.4f}")
     return 0
 
 

@@ -39,7 +39,7 @@ Swap `[gemini]` for `[claude]` or `[openai]` to install the provider you want.
 ## Quickstart (30 seconds)
 
 ```bash
-export GEMINI_API_KEY="AIza_your_key_here"
+export GEMINI_API_KEY="your_gemini_api_key"
 ytsum summarize "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 ```
 
@@ -69,6 +69,9 @@ Your stored summaries become a searchable library (all offline, no provider key)
 ytsum digest --days 7 --format html --out digest.html   # one report, grouped by topic
 ytsum search "rate limiting" --limit 10                  # ranked keyword search
 ytsum export --format csv --out library.csv              # portable JSON/CSV dump
+ytsum related --query "rate limits" --top 5              # similar saved summaries
+ytsum keywords --top 15                                  # library-wide themes
+ytsum feed --file examples/sample_feed.xml --new         # public channel RSS preview
 ```
 
 ## Features
@@ -82,7 +85,8 @@ ytsum export --format csv --out library.csv              # portable JSON/CSV dum
 | **Retry intelligence** | SQLite dedup never re-summarizes a done video; transient failures retry, permanent ones (no captions / private / members-only) never do. |
 | **Multiple inputs** | A single URL, a file of URLs, a public playlist, or a public channel — all via `yt-dlp`, no login. |
 | **Multiple outputs** | stdout, a Markdown digest, a styled HTML page, or one Telegram message per video. |
-| **Searchable library** | Everything you summarize is queryable offline: `digest` (one grouped HTML/Markdown report), `search` (ranked keyword search), `export` (JSON/CSV) — no key required. |
+| **Searchable library** | Everything you summarize is queryable offline: `digest` (one grouped HTML/Markdown report), `search` (ranked keyword search), `related` (TF-IDF similarity), `keywords` (themes), `export` (JSON/CSV) — no key required. |
+| **RSS preview** | `ytsum feed` reads a public YouTube channel RSS feed once, including local XML fixtures, so you can pick recent videos before summarizing. |
 
 ## Why this instead of a browser-extension summarizer?
 
