@@ -9,7 +9,7 @@ from typing import Any
 
 import yt_dlp
 
-from ytsum import __version__, feeds, sources, store, textsim
+from ytsum import __version__, chapters, feeds, sources, store, textsim
 from ytsum import export as export_lib
 from ytsum.config import Config, load_config
 from ytsum.deliver import digest as digest_render
@@ -45,6 +45,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_feed(args, cfg)
     if args.command == "keywords":
         return _cmd_keywords(args, cfg)
+    if args.command == "chapters":
+        return _cmd_chapters(args)
     if args.command == "doctor":
         return _cmd_doctor(cfg)
     parser.print_help()
@@ -78,6 +80,12 @@ def _build_parser() -> argparse.ArgumentParser:
     digest.add_argument("--days", type=int, default=7, help="Look-back window (0 = whole library)")
     digest.add_argument("--format", choices=["html", "markdown"], default="html")
     digest.add_argument("--out", help="Output file (default digest_<date>.<ext>)")
+    digest.add_argument(
+        "--related",
+        type=int,
+        default=0,
+        help="Add up to N related summaries per card (0 = off)",
+    )
     search = sub.add_parser("search", help="Search the stored summary library")
     search.add_argument("query", help="One or more keywords")
     search.add_argument("--limit", type=int, default=20)
@@ -86,6 +94,16 @@ def _build_parser() -> argparse.ArgumentParser:
     export.add_argument("--format", choices=["json", "csv"], default="json")
     export.add_argument("--days", type=int, help="Look-back window (omit = whole library)")
     export.add_argument("--out", help="Output file (default ytsum_export.<ext>)")
+    export.add_argument(
+        "--tags",
+        type=int,
+        default=0,
+        help="Add a tags column with the N most distinctive terms per summary (0 = off)",
+    )
+    chapters_cmd = sub.add_parser("chapters", help="Split a transcript file into chapters")
+    chapters_cmd.add_argument("--transcript-json", required=True, help="Transcript JSON file")
+    chapters_cmd.add_argument("--chapters", type=int, default=5, help="Target chapter count")
+    chapters_cmd.add_argument("--json", action="store_true", help="Emit JSON instead of an outline")
     related = sub.add_parser("related", help="Find similar stored summaries")
     related_target = related.add_mutually_exclusive_group(required=True)
     related_target.add_argument("--id", dest="target_id", help="Stored video id to compare")
@@ -208,7 +226,8 @@ def _cmd_digest(args: argparse.Namespace, cfg: Config) -> int:
     summaries = store.get_summaries(cfg.db_path, days=days)
     ext = "md" if args.format == "markdown" else "html"
     out = Path(args.out) if args.out else Path(f"digest_{datetime.now():%Y%m%d_%H%M%S}.{ext}")
-    path = digest_render.write(summaries, out, fmt=args.format)
+    related = textsim.related_map(summaries, top=args.related) if args.related > 0 else None
+    path = digest_render.write(summaries, out, fmt=args.format, related=related)
     print(f"Wrote {len(summaries)} summaries to {path}")
     return 0
 
@@ -230,8 +249,27 @@ def _cmd_search(args: argparse.Namespace, cfg: Config) -> int:
 def _cmd_export(args: argparse.Namespace, cfg: Config) -> int:
     summaries = store.get_summaries(cfg.db_path, days=args.days)
     out = Path(args.out) if args.out else Path(f"ytsum_export.{args.format}")
-    path = export_lib.write(summaries, out, fmt=args.format)
+    tags = textsim.keywords_by_id(summaries, top=args.tags) if args.tags > 0 else None
+    path = export_lib.write(summaries, out, fmt=args.format, tags=tags)
     print(f"Exported {len(summaries)} summaries to {path}")
+    return 0
+
+
+def _cmd_chapters(args: argparse.Namespace) -> int:
+    raw = json.loads(Path(args.transcript_json).read_text(encoding="utf-8"))
+    try:
+        sections = chapters.build_chapters(
+            str(raw.get("transcript", "")),
+            duration=int(raw.get("duration", 0)),
+            chapters=args.chapters,
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps(sections, ensure_ascii=False, indent=2))
+        return 0
+    print(chapters.render_outline(sections))
     return 0
 
 

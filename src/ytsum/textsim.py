@@ -178,3 +178,53 @@ def _rank(
     ranked.sort(key=lambda pair: str(pair[1].get("processed_at", "")), reverse=True)
     ranked.sort(key=lambda pair: float(pair[0]["similarity"]), reverse=True)
     return [item for item, _ in ranked]
+
+
+def keywords_by_id(summaries: list[dict[str, Any]], *, top: int = 5) -> dict[str, list[str]]:
+    """Top distinctive terms per summary id, building the tf-idf matrix only once."""
+    vectors = build_tfidf([_summary_tokens(row) for row in summaries])
+    result: dict[str, list[str]] = {}
+    for row, vector in zip(summaries, vectors, strict=True):
+        row_id = str(row.get("id", ""))
+        if top <= 0:
+            result[row_id] = []
+            continue
+        ranked = sorted(vector.items(), key=lambda item: (-item[1], item[0]))
+        result[row_id] = [term for term, _ in ranked[:top]]
+    return result
+
+
+def related_map(
+    summaries: list[dict[str, Any]],
+    *,
+    top: int = 3,
+) -> dict[str, list[dict[str, Any]]]:
+    """Related summaries for every id, building the tf-idf matrix only once."""
+    vectors = build_tfidf([_summary_tokens(row) for row in summaries])
+    result: dict[str, list[dict[str, Any]]] = {}
+    for row in summaries:
+        result[str(row.get("id", ""))] = []
+    if top <= 0:
+        return result
+    for i, row_i in enumerate(summaries):
+        candidates: list[tuple[float, dict[str, Any]]] = []
+        for j, row_j in enumerate(summaries):
+            if i == j:
+                continue
+            rounded = round(cosine(vectors[i], vectors[j]), 4)
+            if rounded <= 0.0:
+                continue
+            candidates.append((rounded, row_j))
+        candidates.sort(key=lambda cand: str(cand[1].get("id", "")))
+        candidates.sort(key=lambda cand: str(cand[1].get("processed_at", "")), reverse=True)
+        candidates.sort(key=lambda cand: cand[0], reverse=True)
+        result[str(row_i.get("id", ""))] = [
+            {
+                "id": str(candidate.get("id", "")),
+                "title": str(candidate.get("title", "")),
+                "url": str(candidate.get("url", "")),
+                "similarity": score,
+            }
+            for score, candidate in candidates[:top]
+        ]
+    return result

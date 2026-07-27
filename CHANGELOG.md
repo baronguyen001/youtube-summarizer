@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.0
+
+- Added `ytsum chapters` - split any transcript JSON into deterministic, evenly sized chapters with proportional timestamps and an outline or `--json` view. Pure stdlib, no provider call.
+- Added `ytsum digest --related N` - each card now links its N nearest stored summaries (HTML and Markdown). Opt-in: without the flag the report is unchanged.
+- Added `ytsum export --tags N` - appends a `tags` column with each summary's N most distinctive TF-IDF terms (`;`-joined in CSV, a list in JSON). Opt-in: without the flag the export shape is unchanged.
+- Added `textsim.related_map` and `textsim.keywords_by_id`, which build the TF-IDF matrix once for the whole library instead of once per row.
+- Fixed: CSV exports no longer get a blank row between records on Windows (`write` kept the writer's CRLF endings from being doubled).
+
 ## v0.3.0
 
 - Added `ytsum related` - find similar stored summaries with deterministic TF-IDF cosine ranking, by stored id or free-text query.

@@ -20,14 +20,19 @@ def _group_by_type(summaries: list[dict[str, Any]]) -> dict[str, list[dict[str, 
     return dict(sorted(groups.items(), key=lambda item: (-len(item[1]), item[0])))
 
 
-def render_html(summaries: list[dict[str, Any]], *, generated_at: datetime | None = None) -> str:
+def render_html(
+    summaries: list[dict[str, Any]],
+    *,
+    generated_at: datetime | None = None,
+    related: dict[str, list[dict[str, Any]]] | None = None,
+) -> str:
     now = generated_at or datetime.now()
     groups = _group_by_type(summaries)
     badges = "".join(
         f'<span class="badge">{_escape(name)}: {len(rows)}</span>' for name, rows in groups.items()
     )
     sections = (
-        "\n".join(_section(name, rows) for name, rows in groups.items())
+        "\n".join(_section(name, rows, related) for name, rows in groups.items())
         or '<p class="empty">No summaries stored yet.</p>'
     )
     return f"""<!doctype html>
@@ -57,6 +62,8 @@ def render_html(summaries: list[dict[str, Any]], *, generated_at: datetime | Non
     .summary h4 {{ color: #ffbe55; margin: 10px 0 4px; }}
     .summary ul {{ margin: 8px 0 8px 18px; padding: 0; }}
     .summary strong {{ color: #ffe082; }}
+    .related {{ color: #a8b3c2; font-size: 13px; margin-top: 10px; }}
+    .related a {{ margin-right: 4px; }}
     .empty {{ color: #a8b3c2; }}
     footer {{ color: #727b88; text-align: center; font-size: 12px; padding: 18px; }}
   </style>
@@ -75,27 +82,59 @@ def render_html(summaries: list[dict[str, Any]], *, generated_at: datetime | Non
 </html>"""
 
 
-def _section(name: str, rows: list[dict[str, Any]]) -> str:
-    cards = "\n".join(_card(row) for row in rows)
+def _section(
+    name: str,
+    rows: list[dict[str, Any]],
+    related: dict[str, list[dict[str, Any]]] | None = None,
+) -> str:
+    cards = "\n".join(_card(row, related) for row in rows)
     return f'<section><h2 class="group">{_escape(name)} ({len(rows)})</h2>\n{cards}</section>'
 
 
-def _card(row: dict[str, Any]) -> str:
+def _related_html(entries: list[dict[str, Any]]) -> str:
+    if not entries:
+        return ""
+    parts: list[str] = []
+    for entry in entries:
+        url = _escape(str(entry.get("url") or ""))
+        title = _escape(str(entry.get("title") or entry.get("id") or "untitled"))
+        similarity = f"{float(entry.get('similarity', 0.0)):.4f}"
+        parts.append(f'<a href="{url}">{title}</a> ({similarity})')
+    return f'\n  <div class="related">Related: {", ".join(parts)}</div>'
+
+
+def _card(row: dict[str, Any], related: dict[str, list[dict[str, Any]]] | None = None) -> str:
     title = _escape(str(row.get("title") or row.get("id") or "untitled"))
     channel = _escape(str(row.get("channel") or "unknown"))
     url = _escape(str(row.get("url") or ""))
     when = _escape(str(row.get("processed_at") or ""))
     body = _markdown_to_html(str(row.get("summary") or ""))
+    extra = _related_html((related or {}).get(str(row.get("id", "")), []))
     return f"""<article class="video-card">
   <h3 class="video-title">{title}</h3>
   <div class="meta">{channel} &middot; {when}</div>
   <div class="link"><a href="{url}">{url}</a></div>
-  <div class="summary">{body}</div>
+  <div class="summary">{body}</div>{extra}
 </article>"""
 
 
+def _related_markdown(entries: list[dict[str, Any]]) -> str:
+    if not entries:
+        return ""
+    parts: list[str] = []
+    for entry in entries:
+        title = str(entry.get("title") or entry.get("id") or "untitled")
+        url = str(entry.get("url") or "")
+        similarity = f"{float(entry.get('similarity', 0.0)):.4f}"
+        parts.append(f"[{title}]({url}) ({similarity})")
+    return f"**Related:** {', '.join(parts)}"
+
+
 def render_markdown(
-    summaries: list[dict[str, Any]], *, generated_at: datetime | None = None
+    summaries: list[dict[str, Any]],
+    *,
+    generated_at: datetime | None = None,
+    related: dict[str, list[dict[str, Any]]] | None = None,
 ) -> str:
     now = generated_at or datetime.now()
     lines = [
@@ -115,6 +154,10 @@ def render_markdown(
             lines.append("")
             lines.append(str(row.get("summary") or "").strip())
             lines.append("")
+            related_line = _related_markdown((related or {}).get(str(row.get("id", "")), []))
+            if related_line:
+                lines.append(related_line)
+                lines.append("")
     if len(lines) <= 4:
         lines.append("_No summaries stored yet._")
     return "\n".join(lines).rstrip() + "\n"
@@ -126,12 +169,13 @@ def write(
     *,
     fmt: str = "html",
     generated_at: datetime | None = None,
+    related: dict[str, list[dict[str, Any]]] | None = None,
 ) -> Path:
     path = Path(out_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     if fmt == "markdown":
-        text = render_markdown(summaries, generated_at=generated_at)
+        text = render_markdown(summaries, generated_at=generated_at, related=related)
     else:
-        text = render_html(summaries, generated_at=generated_at)
+        text = render_html(summaries, generated_at=generated_at, related=related)
     path.write_text(text, encoding="utf-8")
     return path

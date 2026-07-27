@@ -72,6 +72,9 @@ ytsum export --format csv --out library.csv              # portable JSON/CSV dum
 ytsum related --query "rate limits" --top 5              # similar saved summaries
 ytsum keywords --top 15                                  # library-wide themes
 ytsum feed --file examples/sample_feed.xml --new         # public channel RSS preview
+ytsum digest --related 3 --out digest.html               # each card links its 3 nearest summaries
+ytsum export --format csv --tags 5 --out library.csv     # export with a per-summary tags column
+ytsum chapters --transcript-json examples/sample_transcript.json --chapters 4
 ```
 
 ## Features
@@ -86,6 +89,9 @@ ytsum feed --file examples/sample_feed.xml --new         # public channel RSS pr
 | **Multiple inputs** | A single URL, a file of URLs, a public playlist, or a public channel — all via `yt-dlp`, no login. |
 | **Multiple outputs** | stdout, a Markdown digest, a styled HTML page, or one Telegram message per video. |
 | **Searchable library** | Everything you summarize is queryable offline: `digest` (one grouped HTML/Markdown report), `search` (ranked keyword search), `related` (TF-IDF similarity), `keywords` (themes), `export` (JSON/CSV) — no key required. |
+| **Cross-linked digest** | `digest --related N` adds the N nearest summaries to every card (HTML and Markdown). Off by default, so existing reports render unchanged. |
+| **Tagged exports** | `export --tags N` appends a `tags` column holding each summary's N most distinctive terms — one TF-IDF pass for the whole library, not one per row. |
+| **Chapter outlines** | `ytsum chapters` splits any transcript JSON into evenly sized, deterministic chapters with proportional timestamps — pure stdlib, no provider call. |
 | **RSS preview** | `ytsum feed` reads a public YouTube channel RSS feed once, including local XML fixtures, so you can pick recent videos before summarizing. |
 
 ## Why this instead of a browser-extension summarizer?
