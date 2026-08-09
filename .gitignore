@@ -88,9 +88,7 @@ logs/
 # phai package `src/ytsum` duoc publish.
 vi_style.py
 tests/test_vi_style.py
-
-# Duong dan video tu chon qua Google Sheet — cung lop pipeline rieng, truoc day chi
-# "chua tracked" chu chua duoc ignore.
-curated_sender.py
-curated_source.py
-curated_store.py
+run_curated.py
+run_curated.ps1
+setup_curated_task.ps1
+tests/test_curated.py
