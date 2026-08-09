@@ -1,0 +1,96 @@
+.env
+.venv/
+venv/
+*.db
+*.sqlite
+logs/
+out/
+*.html
+!docs/**/*.html
+browser_session*/
+browser_session_old_*/
+nlm_session/
+*cookies*
+youtube_cookies.txt
+gemini_token.md
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+*.png
+!screenshots/*.png
+
+# Legacy private source files kept in this local folder but never published.
+2026-03-31_15h31_54.png
+_login_60s.py
+backfill.py
+batch_nlm.py
+batch_process.py
+browser.py
+config.py
+database.py
+extract_transcript.js
+fix_truncated.py
+html_logger.py
+login_now.bat
+main.py
+notebooklm.py
+run_daily.bat
+run_daily.ps1
+setup_scheduler.ps1
+start_chrome.bat
+summarizer.py
+telegram_sender.py
+transcript.py
+video_chua_xem.md
+image/
+
+# Junk filter (2026-08-06). KHÔNG publish: `junk_filter.py` nêu đích danh tên + channel id
+# của các kênh YouTube thật bị chặn, và các file dữ liệu dưới đây lộ nguyên danh sách kênh
+# user đang theo dõi. Repo này là repo CÔNG KHAI.
+junk_filter.py
+junk_triage.py
+mark_junk_backfill.py
+repair_mojibake.py
+tests/test_junk_filter.py
+tests/test_junk_triage.py
+tests/test_junk_gate_integration.py
+tests/test_mark_junk_backfill.py
+tests/test_mark_junk_db.py
+
+# Các file pipeline riêng tư còn lại — trước đây chỉ "chưa tracked" chứ không được
+# ignore, nên một lần `git add -A` là đẩy hết lên public.
+ai_hub.py
+backfill_channels.py
+content_filter.py
+drain_backlog.py
+seen_store.py
+pot_provider.py
+test_backfill_channels.py
+tests/test_shorts.py
+tests/test_aihub_and_nocap.py
+tests/test_root_summarizer_guard.py
+tests/test_root_telegram_summarizer.py
+tests/test_seen_store.py
+tests/test_transcript_fetch.py
+test_load_aihub.py
+_gap_targets.json
+_top20.txt
+channel_ids.json
+channel_failures.json
+youtube_summarizer.db*
+logs/
+# Huong dan dich tieng Viet theo loai video (2026-08-09) — thuoc pipeline rieng, khong
+# phai package `src/ytsum` duoc publish.
+vi_style.py
+tests/test_vi_style.py
+
+# Duong dan video tu chon qua Google Sheet — cung lop pipeline rieng, truoc day chi
+# "chua tracked" chu chua duoc ignore.
+curated_sender.py
+curated_source.py
+curated_store.py
