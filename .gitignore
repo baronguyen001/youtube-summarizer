@@ -112,3 +112,4 @@ tests/test_aihub_ladder.py
 # import `config`, `database` va `transcript` — ca ba deu nam trong danh sach khong publish.
 reconcile.py
 test_live_guard.py
+test_telegram_flags.py
