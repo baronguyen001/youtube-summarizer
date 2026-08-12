@@ -106,3 +106,9 @@ tests/test_run_curated.py
 # Khoa thang leo AI Hub cua summarizer.py + noi dung CURATED_SUMMARY_PROMPT — ca hai
 # file do deu private, nen bo test cua chung cung phai private.
 tests/test_aihub_ladder.py
+
+# Duong VET video mo coi (2026-08-12). Private cung ly do voi `main.py`/`database.py`:
+# `reconcile.py` biet schema bang `seen_videos` cua CSDL rieng, con `test_live_guard.py`
+# import `config`, `database` va `transcript` — ca ba deu nam trong danh sach khong publish.
+reconcile.py
+test_live_guard.py
