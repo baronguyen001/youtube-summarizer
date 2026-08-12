@@ -88,7 +88,21 @@ logs/
 # phai package `src/ytsum` duoc publish.
 vi_style.py
 tests/test_vi_style.py
+# Duong "curated digest" (2026-08-09): doc Google Sheet rieng -> phan tich sau ->
+# kenh Telegram rieng. Thuoc pipeline PRIVATE, khong phai package `src/ytsum` duoc
+# publish. Ba dong curated_*.py tung bi xoa khoi day mot lan -> `git check-ignore`
+# bao "LO RA" trong khi file van nam trong thu muc: mot `git add -A` la day thang
+# len repo PUBLIC. Giu du ca 7 dong.
+curated_source.py
+curated_store.py
+curated_sender.py
+curated_classify.py
 run_curated.py
 run_curated.ps1
 setup_curated_task.ps1
 tests/test_curated.py
+tests/test_curated_classify.py
+tests/test_run_curated.py
+# Khoa thang leo AI Hub cua summarizer.py + noi dung CURATED_SUMMARY_PROMPT — ca hai
+# file do deu private, nen bo test cua chung cung phai private.
+tests/test_aihub_ladder.py
