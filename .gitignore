@@ -59,6 +59,9 @@ repair_mojibake.py
 tests/test_junk_filter.py
 tests/test_junk_triage.py
 tests/test_junk_gate_integration.py
+# Import thẳng `junk_filter`/`junk_triage`, mà hai file đó nằm trong danh sách này — publish
+# riêng bài test sẽ làm bộ test của bản công khai gãy ngay ở khâu import.
+tests/test_disaster_floor.py
 tests/test_mark_junk_backfill.py
 tests/test_mark_junk_db.py
 
