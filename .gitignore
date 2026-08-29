@@ -116,3 +116,10 @@ tests/test_aihub_ladder.py
 reconcile.py
 test_live_guard.py
 test_telegram_flags.py
+
+# Phan loai topic/relevance cho duong curated (2026-08-29) - cung ly do private voi
+# curated_store.py/curated_classify.py: biet schema + prompt noi bo cua duong curated.
+curated_topic.py
+backfill_curated_topic.py
+tests/test_curated_topic.py
+tests/test_backfill_curated_topic.py
