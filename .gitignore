@@ -123,3 +123,8 @@ curated_topic.py
 backfill_curated_topic.py
 tests/test_curated_topic.py
 tests/test_backfill_curated_topic.py
+
+# Fallback goi Codex CLI truc tiep khi AI Hub fail (2026-08-29) - biet cach resolve
+# codex.exe + prompt noi bo cua ca 2 duong (curated va daily).
+codex_fallback.py
+tests/test_codex_fallback.py
